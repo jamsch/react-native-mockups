@@ -47,6 +47,7 @@
   },
   "homepage": "https://github.com/jamsch/react-native-mockups#readme",
   "publishConfig": {
+    "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
