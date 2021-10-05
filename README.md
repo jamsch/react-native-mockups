@@ -69,10 +69,10 @@ Options:
 
 ## Basic Usage
 
-1. Create a file in your project, ending in **\*.mockup.js/tsx**
+1. Create a file in your project, ending in **\*.mockup.jsx/tsx**
 
 ```tsx
-// Button.mockup.js
+// Button.mockup.jsx
 import React from 'react';
 import { Button, View } from 'react-native';
 
@@ -95,7 +95,7 @@ export default {
 3. Create a component that imports `MockupRoot` and provide it the list of `mockups`
 
 ```jsx
-// MockupApp.js
+// MockupApp.jsx
 import React from 'react';
 import { MockupRoot } from '@jamsch/react-native-mockups';
 import mockups from './mockups'; // your generated file
@@ -143,7 +143,7 @@ if (process.env.MOCKUP) {
 You can import `Meta` to help assist typechecking exports on `*.mockup.tsx` files
 
 ```tsx
-// Button.mockup.js
+// Button.mockup.tsx
 import React from 'react';
 import { Button, View } from 'react-native';
 import type { Meta } from '@jamsch/react-native-mockups';
@@ -215,7 +215,7 @@ export default function MockupApp() {
 ## Configuring Mockup Item layout
 
 ```jsx
-// MockupApp.js
+// MockupApp.jsx
 import React, { useLayoutEffect } from 'react';
 import { Pressable, Text } from 'react-native';
 import { MockupRoot } from '@jamsch/react-native-mockups';
