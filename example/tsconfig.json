@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@jamsch/react-native-mockups": ["../src/index"]
+    }
+  },
+  "extends": "expo/tsconfig.base"
+}

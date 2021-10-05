@@ -1,0 +1,41 @@
+{
+  "name": "react-native-mockups-example",
+  "description": "Example app for react-native-mockups",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index",
+  "scripts": {
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "start": "expo start",
+    "mockup": "node ../lib/commonjs/cli/cli.js",
+    "test": "jest"
+  },
+  "config": {
+    "react-native-mockups": {
+      "searchDir": [
+        "./src"
+      ],
+      "pattern": "**/*.mockup.tsx",
+      "outputFile": "./src/mockups.ts"
+    }
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.15.8",
+    "expo": "^42.0.4",
+    "expo-splash-screen": "~0.11.4",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-native": "0.63.4",
+    "react-native-unimodules": "~0.14.8",
+    "react-native-web": "~0.17.5"
+  },
+  "devDependencies": {
+    "@babel/core": "~7.15.5",
+    "@babel/runtime": "^7.15.4",
+    "babel-plugin-module-resolver": "^4.1.0",
+    "babel-preset-expo": "8.4.1",
+    "expo-cli": "^4.12.1"
+  }
+}

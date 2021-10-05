@@ -1,0 +1,22 @@
+{
+  "name": "react-native-mockups-example",
+  "displayName": "Mockups Example",
+  "expo": {
+    "name": "react-native-mockups-example",
+    "slug": "react-native-mockups-example",
+    "description": "Example app for react-native-mockups",
+    "privacy": "public",
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
