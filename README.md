@@ -1,5 +1,7 @@
 # @jamsch/react-native-mockups
 
+[![npm version](https://badge.fury.io/js/@jamsch%2Freact-native-mockups.svg)](https://badge.fury.io/js/@jamsch%2Freact-native-mockups)
+
 react-native-mockups is a lean (no runtime dependencies) alternative to Storybook that provides a similar API and IDE tooling for React Native to automatically load your components.
 
 ![preview](https://i.imgur.com/ZwRJOd8.gif)
