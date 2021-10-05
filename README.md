@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/@jamsch%2Freact-native-mockups.svg)](https://badge.fury.io/js/@jamsch%2Freact-native-mockups)
 
-react-native-mockups is a lean (no runtime dependencies) alternative to Storybook that provides a similar API and IDE tooling for React Native to automatically load your components.
+react-native-mockups is a lean (no runtime dependencies) alternative to Storybook that provides a similar API and CLI tooling for React Native to automatically load your components.
 
 ![preview](https://i.imgur.com/ZwRJOd8.gif)
 
@@ -109,12 +109,12 @@ export default function MockupApp() {
 
 > Tip: You can conditionally load your Mockup view as the app root using `babel-plugin-transform-inline-environment-variables`, for example:
 
-```json
+```js
 // babel.config.js
 module.exports = {
-  presets: ["module:metro-react-native-babel-preset"],
-  plugins: ["transform-inline-environment-variables"]
-}
+  presets: ['module:metro-react-native-babel-preset'],
+  plugins: ['transform-inline-environment-variables'],
+};
 ```
 
 ```json
