@@ -54,7 +54,7 @@ logger.debug('yargs', args);
     const configuration = await generateConfiguration(args, cwd);
     const loaderDefinition = await generateLoaderDefinition(configuration);
     const template = await generateTemplate(loaderDefinition);
-    logger.info('config: ' + configuration.outputFile);
+
     await fs.mkdir(path.dirname(loaderDefinition.outputFile), {
       recursive: true,
     });
