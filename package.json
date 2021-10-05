@@ -1,6 +1,6 @@
 {
   "name": "@jamsch/react-native-mockups",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Tools to develop components in isolation",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
