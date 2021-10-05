@@ -6,7 +6,7 @@ import type { Meta } from '@jamsch/react-native-mockups';
 const values = ['Easy', 'Medium', 'Hard'] as const;
 
 function RadioMockup() {
-  const [value, setValue] = useState('easy');
+  const [value, setValue] = useState('Easy');
   return (
     <View>
       <View>

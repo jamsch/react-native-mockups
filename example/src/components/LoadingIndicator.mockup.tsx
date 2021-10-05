@@ -1,12 +1,12 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import LoadingIndicator from './LoadingIndicator';
 import type { Meta } from '@jamsch/react-native-mockups';
 
 export default {
   title: 'LoadingIndicator',
   component: () => (
-    <View style={{ padding: 10 }}>
+    <View style={styles.container}>
       <Text>Default</Text>
       <LoadingIndicator />
 
@@ -18,3 +18,7 @@ export default {
     </View>
   ),
 } as Meta;
+
+const styles = StyleSheet.create({
+  container: { padding: 10 },
+});

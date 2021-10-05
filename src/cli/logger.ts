@@ -1,48 +1,50 @@
-export enum LogLevels {
-  silent = 0,
-  error = 1,
-  warn = 2,
-  info = 3,
-  debug = 4,
-  trace = 5,
-}
+export const LogLevels = {
+  silent: 0,
+  error: 1,
+  warn: 2,
+  info: 3,
+  debug: 4,
+  trace: 5,
+};
 
-let logLevel = LogLevels.info;
+type LogLevel = keyof typeof LogLevels;
 
-export const setLogLevel = (level: LogLevels) => {
+let logLevel: LogLevel = 'info';
+
+export const setLogLevel = (level: LogLevel) => {
   logLevel = level;
 };
 
 const debug = (...message: any[]) => {
-  if (logLevel < LogLevels.debug) {
+  if (LogLevels[logLevel] < LogLevels.debug) {
     return;
   }
   console.debug(...message);
 };
 
 const info = (...message: any[]) => {
-  if (logLevel < LogLevels.info) {
+  if (LogLevels[logLevel] < LogLevels.info) {
     return;
   }
   console.info(...message);
 };
 
 const warn = (...message: any[]) => {
-  if (logLevel < LogLevels.warn) {
+  if (LogLevels[logLevel] < LogLevels.warn) {
     return;
   }
   console.warn(...message);
 };
 
 const error = (...message: any[]) => {
-  if (logLevel < LogLevels.error) {
+  if (LogLevels[logLevel] < LogLevels.error) {
     return;
   }
   console.error(...message);
 };
 
 const trace = (...message: any[]) => {
-  if (logLevel < LogLevels.trace) {
+  if (LogLevels[logLevel] < LogLevels.trace) {
     return;
   }
   console.trace(...message);

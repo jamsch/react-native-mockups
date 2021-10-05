@@ -6,7 +6,7 @@ import mockups from './mockups'; // your generated file
 const STORAGE_KEY = 'MOCKUP_INITIAL_PATH';
 
 export default function MockupApp() {
-  const [initialPath, setInitialPath] = useState(null);
+  const [initialPath, setInitialPath] = useState<string | null>(null);
 
   // Load from AsyncStorage
   useEffect(() => {

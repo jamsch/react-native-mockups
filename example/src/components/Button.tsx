@@ -15,11 +15,11 @@ export default function Button(props: ButtonProps) {
       <View
         style={[
           containerStyles.button,
-          containerStyles[color],
+          containerStyles[color || 'primary'],
           containerStyles[size || 'regular'],
         ]}
       >
-        <Text style={textStyles[color]}>{title}</Text>
+        <Text style={textStyles[color || 'primary']}>{title}</Text>
       </View>
     </TouchableOpacity>
   );

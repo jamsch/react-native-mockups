@@ -6,7 +6,6 @@ import path from 'path';
 import logger from './logger';
 import { InputConfiguration, generateConfiguration } from './configuration';
 
-import { LogLevels } from './logger';
 import { generateTemplate } from './template';
 import { generateLoaderDefinition } from './locator';
 import { encoding } from './constants';
@@ -39,11 +38,11 @@ const args: InputConfiguration = yargs
   .help().argv;
 
 if (args.silent) {
-  logger.setLogLevel(LogLevels.silent);
+  logger.setLogLevel('silent');
 } else if (args.debug) {
-  logger.setLogLevel(LogLevels.debug);
+  logger.setLogLevel('debug');
 } else {
-  logger.setLogLevel(LogLevels.info);
+  logger.setLogLevel('info');
 }
 
 logger.debug('yargs', args);
