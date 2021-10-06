@@ -81,12 +81,6 @@ function DefaultCommand(args: InputConfiguration) {
   }
 
   logger.debug('yargs', args);
-  console.warn('args:', args);
-
-  // if startServer is set, we need to start the server
-  // if (args.server) {
-  // server(args.server);
-  //}
 
   (async () => {
     try {
