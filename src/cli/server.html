@@ -4,6 +4,7 @@
     <style>
       .warning {
         color: red;
+        text-align: center;
       }
       button {
         cursor: pointer;
@@ -76,10 +77,12 @@
 
       // Your application UI state
       let state = JSON.parse('{{state}}');
-      let connected = false;
 
       ws.onopen = () => {
-        connected = true;
+        renderApp(state);
+      };
+
+      ws.onclose = () => {
         renderApp(state);
       };
 
@@ -141,8 +144,11 @@
           document.getElementById('app'),
           h('div', {
             children: [
-              !connected &&
-                h('div', { class: 'warning', children: `Not connected` }),
+              ws.readyState !== WebSocket.OPEN &&
+                h('div', {
+                  class: 'warning',
+                  children: `Websocket not connected.`,
+                }),
               list,
             ],
           })
