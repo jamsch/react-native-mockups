@@ -220,7 +220,7 @@ export default function MockupApp() {
 
 ```jsx
 // MockupApp.jsx
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { MockupRoot } from '@jamsch/react-native-mockups';
 import mockups from './mockups'; // your generated file
