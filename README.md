@@ -55,6 +55,10 @@ Alternatively, you can call the CLI directly in case you'd like to generate mult
 ```sh
 react-native-mockups [options]
 
+Commands:
+  react-native-mockups server [-p 1337]  Start the server
+  react-native-mockups                   [command]                                   [default]
+
 Options:
   --searchDir   The directory or directories, relative to the project
                 root, to search for files in.                             [array]
@@ -226,11 +230,11 @@ export default function MockupApp() {
     <MockupRoot
       mockups={mockups}
       // Customise the item to render
-      renderItem={({ path, setSelectedMockup, title }) => {
+      renderItem={({ path, navigate, title }) => {
         return (
           <Pressable
             key={path}
-            onPress={() => setSelectedMockup(path)}
+            onPress={() => navigate(path)}
             android_ripple={{ borderless: false }}
           >
             <Text>Mockup: {title}</Text>
@@ -256,9 +260,94 @@ export default function MockupApp() {
   renderItem?: (params: {
     path: string;
     title: string;
-    setSelectedMockup: (path: string) => void;
+    navigate: (path: string) => void;
   }) => React.ReactNode;
+  /** Path to websocket server */
+  server?: string;
 }
+```
+
+## Running the preview server
+
+`react-native-mockups` includes a tiny Node.js http & websocket server to allow for integration with IDE tooling (VS code extensions) & web apps.
+
+Preview:
+
+![mockup-server-preview](https://i.imgur.com/D9TCc4D.gif)
+
+1. Run `react-native-mockups server` to start the server
+2. Add `server="[host]:[port]"` to `MockupRoot`
+
+```tsx
+import React from 'react';
+import { MockupRoot } from '@jamsch/react-native-mockups';
+import mockups from './mockups';
+
+export default function App() {
+  return (
+    <MockupRoot
+      mockups={mockups}
+      server="localhost:1337" // path to your server
+    />
+  );
+}
+```
+
+> Note: for Android devices, you'll likely need to run the following command in order to connect to the websocket server.
+
+```sh
+adb reverse tcp:1337 tcp:1337
+```
+
+## The websocket server API
+
+If you'd like to create your own IDE tooling, here's a quick starter.
+
+```ts
+// Connect to websocket server
+const ws = new WebSocket('ws://localhost:1337/websocket');
+
+// Your application UI state
+let uiState = {
+  path: '', // Current Path
+  mockups: [],
+};
+let connected = false;
+
+ws.onopen = () => {
+  connected = true;
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  switch (message.type) {
+    // Once an app client has connected, you'll get a "SYNC_STATE" message
+    case 'SYNC_STATE': {
+      uiState = message.payload;
+      /* {
+          type: "SYNC_STATE",
+          payload: {
+            path: string; // Current path
+            mockups: Array<{
+              title: string,
+              path: string,
+              children?: [{ title: string, path: string, children?: [...] }]
+          }>
+        }*/
+      break;
+    }
+    case 'NAVIGATE': {
+      uiState.path = message.payload;
+      // { type: "NAVIGATE", payload: "./components/ui/Button.tsx" }
+      break;
+    }
+  }
+};
+
+// Navigate to a mockup. This will be broadcasted to all clients
+const message = { type: 'NAVIGATE', payload: './components/ui/Button.tsx' };
+
+ws.send(JSON.stringify(message));
 ```
 
 ## Contributing

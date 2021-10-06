@@ -1,0 +1,159 @@
+<html>
+  <head>
+    <title>Mockup server</title>
+    <style>
+      .warning {
+        color: red;
+      }
+      button {
+        cursor: pointer;
+        font-size: 20px;
+        color: #4b5563;
+        padding: 1rem;
+        background: transparent;
+        border: none;
+        display: block;
+        width: 100%;
+        text-align: left;
+        border-bottom: 1px solid #9ca3af;
+      }
+      button.current {
+        background: #f3f4f6;
+        color: #111827;
+      }
+      button:hover {
+        background-color: #f9fafb;
+      }
+    </style>
+    <script>
+      const eventHandlers = new Set(['onclick']);
+
+      class JsxElement {
+        constructor(target, props) {
+          this.target = target;
+          this.props = props;
+        }
+
+        render() {
+          const element = document.createElement(this.target);
+          for (const key in this.props) {
+            if (key !== 'children') {
+              if (eventHandlers.has(key)) {
+                element[key] = this.props[key];
+              } else {
+                element.setAttribute(key, this.props[key]);
+              }
+            }
+          }
+
+          const children = Array.isArray(this.props.children)
+            ? this.props.children
+            : [this.props.children];
+
+          for (const child of children) {
+            if (child) {
+              const node =
+                typeof child === 'string'
+                  ? document.createTextNode(child)
+                  : child.render();
+
+              element.appendChild(node);
+            }
+          }
+
+          return element;
+        }
+      }
+      var h = (tag, props) => new JsxElement(tag, props);
+      var render = (root, jsxElement) => {
+        root.innerHTML = '';
+        root.appendChild(jsxElement.render());
+      };
+    </script>
+    <script>
+      // create websocket client
+      const ws = new WebSocket('ws://{{host}}:{{port}}/websocket');
+
+      // Your application UI state
+      let state = JSON.parse('{{state}}');
+      let connected = false;
+
+      ws.onopen = () => {
+        connected = true;
+        renderApp(state);
+      };
+
+      // Once an app client has connected, you'll get a "SYNC_STATE" message
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        switch (message.type) {
+          case 'SYNC_STATE':
+            state = message.payload;
+            break;
+          case 'NAVIGATE':
+            state.path = message.path;
+            break;
+          default:
+            return;
+        }
+        renderApp(state);
+      };
+
+      const navigate = (path) => {
+        // Navigate to a mockup. This will be broadcasted to all clients
+        const message = {
+          type: 'NAVIGATE',
+          payload: path,
+        };
+        ws.send(JSON.stringify(message));
+      };
+
+      function renderApp(state) {
+        const { path, mockups } = state;
+        const currentMockup = mockups.find((mockup) => mockup.path === path);
+        const currentMockupIndex = mockups.indexOf(currentMockup);
+
+        const list = (() => {
+          if (!state.has_synced) {
+            return h('div', {
+              class: 'warning',
+              children: 'Waiting for a connection from the app...',
+            });
+          }
+          if (mockups.length === 0) {
+            h('div', {
+              children: 'No mockups found. Start writing some now!',
+            });
+          }
+          return h('div', {
+            children: mockups.map((mockup, index) => {
+              const isCurrent = index === currentMockupIndex;
+              return h('button', {
+                class: isCurrent ? 'current' : '',
+                onclick: () => navigate(mockup.path),
+                children: mockup.title,
+              });
+            }),
+          });
+        })();
+
+        render(
+          document.getElementById('app'),
+          h('div', {
+            children: [
+              !connected &&
+                h('div', { class: 'warning', children: `Not connected` }),
+              list,
+            ],
+          })
+        );
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="warning">Not connected</div>
+      Waiting for connection...
+    </div>
+  </body>
+</html>

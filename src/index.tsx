@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  BackHandler,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { useWebsocket, useHandleBack } from './hooks';
 
 export interface Meta {
   title: string;
@@ -23,23 +17,55 @@ interface MockupBaseProps<T extends FileMap> {
   mockups: T;
   /** When a navigation occurs */
   onNavigate?: (path: keyof T | null) => void;
+  /** Websocket server path (e.g. "localhost:1337") */
+  server?: string;
 }
 
 interface MockupContainerProps<T extends FileMap> extends MockupBaseProps<T> {
-  children: (params: {
-    setSelectedMockup(mockup: keyof T): void;
-  }) => React.ReactNode;
+  children: (params: { navigate(mockup: keyof T): void }) => React.ReactNode;
 }
 
-function MockupContainer<T extends FileMap>({
-  mockups,
-  initialPath,
-  onNavigate,
-  children,
-}: MockupContainerProps<T>) {
+export interface MockupRootRef {
+  /** Navigates to a specific mockup (or back to the root view) */
+  navigate(path: string | null): void;
+}
+
+function MockupContainer<T extends FileMap>(props: MockupContainerProps<T>) {
+  const { mockups, initialPath, onNavigate, server, children } = props;
+
   const [selectedMockup, setSelectedMockup] = useState<keyof T | null>(
     initialPath || null
   );
+
+  // If applicable, connect to the websocket server
+  const { socket, connected } = useWebsocket(server || '', (message) => {
+    if (message.type === 'NAVIGATE') {
+      setSelectedMockup(message.payload as string);
+    }
+  });
+
+  useEffect(() => {
+    if (!connected || socket.current?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const sortedMockups = Object.keys(mockups)
+      .map((mockup) => ({
+        // @ts-ignore
+        title: mockups[mockup]?.default?.title || formatMockupName(mockup),
+        path: mockup,
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title));
+
+    const action = JSON.stringify({
+      type: 'UPDATE_STATE',
+      payload: {
+        path: selectedMockup,
+        mockups: sortedMockups,
+      },
+    });
+    socket.current?.send(action);
+  }, [socket, connected, mockups, selectedMockup]);
 
   useEffect(() => {
     onNavigate?.(selectedMockup);
@@ -67,7 +93,7 @@ function MockupContainer<T extends FileMap>({
 
   return (
     <ScrollView style={styles.container}>
-      {children({ setSelectedMockup })}
+      {children({ navigate: setSelectedMockup })}
     </ScrollView>
   );
 }
@@ -76,7 +102,7 @@ export interface MockupRootProps<T extends FileMap> extends MockupBaseProps<T> {
   renderItem?: (params: {
     path: keyof T;
     title: string;
-    setSelectedMockup: (path: keyof T) => void;
+    navigate: (path: keyof T) => void;
   }) => React.ReactNode;
 }
 
@@ -96,7 +122,7 @@ export function MockupRoot<T extends FileMap>(props: MockupRootProps<T>) {
   );
   return (
     <MockupContainer {...props}>
-      {({ setSelectedMockup }) => (
+      {({ navigate }) => (
         <View style={styles.container}>
           {sortedMockups.map(({ key, value }) => {
             // @ts-ignore
@@ -107,14 +133,14 @@ export function MockupRoot<T extends FileMap>(props: MockupRootProps<T>) {
               return props.renderItem({
                 path: key,
                 title,
-                setSelectedMockup,
+                navigate,
               });
             }
 
             return (
               <Pressable
                 key={key}
-                onPress={() => setSelectedMockup(key)}
+                onPress={() => navigate(key)}
                 android_ripple={{ borderless: false }}
               >
                 <View style={styles.mockupButton}>
@@ -163,7 +189,7 @@ export function MockupFileExplorer<T extends FileMap>(
 
   return (
     <MockupContainer {...props}>
-      {({ setSelectedMockup }) => (
+      {({ navigate }) => (
         <View>
           {groupedMockups.map((groupedMockup) => {
             return (
@@ -176,7 +202,7 @@ export function MockupFileExplorer<T extends FileMap>(
                   return (
                     <Pressable
                       key={file}
-                      onPress={() => setSelectedMockup(file as keyof T)}
+                      onPress={() => navigate(file as keyof T)}
                       android_ripple={{ borderless: false }}
                     >
                       <View style={styles.mockupButton}>
@@ -194,16 +220,6 @@ export function MockupFileExplorer<T extends FileMap>(
       )}
     </MockupContainer>
   );
-}
-
-/** Uses global navigation ref instead of relative navigation ref */
-function useHandleBack(callback: () => boolean) {
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', callback);
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', callback);
-    };
-  }, [callback]);
 }
 
 const styles = StyleSheet.create({
