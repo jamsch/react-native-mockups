@@ -4,7 +4,7 @@
 // https://github.com/jamsch/react-native-mockups
 
 export default {
-  './components/Button.mockup': require('./components/Button.mockup'),
-  './components/LoadingIndicator.mockup': require('./components/LoadingIndicator.mockup'),
-  './components/Radio.mockup': require('./components/Radio.mockup'),
+  '/home/james/Documents/react-native-mockups/example/src/components/Button.mockup.tsx': require('./components/Button.mockup'),
+  '/home/james/Documents/react-native-mockups/example/src/components/LoadingIndicator.mockup.tsx': require('./components/LoadingIndicator.mockup'),
+  '/home/james/Documents/react-native-mockups/example/src/components/Radio.mockup.tsx': require('./components/Radio.mockup'),
 };

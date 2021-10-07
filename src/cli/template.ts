@@ -4,11 +4,13 @@ import type { LoaderDefinition } from './locator';
 import logger from './logger';
 
 const formatter = (
-  files: string[],
-  frms: (file: string) => string,
+  files: { absolute: string[]; relative: string[] },
+  frms: (params: { absolute: string; relative: string }) => string,
   separator: string
 ) => {
-  const formatted = files.map((f) => frms(f));
+  const formatted = files.absolute.map((_, i) =>
+    frms({ absolute: files.absolute[i], relative: files.relative[i] })
+  );
   return formatted.join(separator);
 };
 
@@ -26,8 +28,8 @@ export const generateTemplate = async (
 
   export default {
   ${formatter(
-    loader.storyFiles,
-    (file) => `'${file}': require('${file}')`,
+    loader.mockupFiles,
+    (file) => `'${file.absolute}': require('${file.relative}')`,
     ',\n'
   )}
   };

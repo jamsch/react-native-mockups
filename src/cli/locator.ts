@@ -6,7 +6,7 @@ import type { Configuration } from './configuration';
 
 export type LoaderDefinition = {
   outputFile: string;
-  storyFiles: string[];
+  mockupFiles: { absolute: string[]; relative: string[] };
 };
 
 export const generateLoaderDefinition = async ({
@@ -32,9 +32,12 @@ export const generateLoaderDefinition = async ({
 
   return {
     outputFile: fullOutputFile,
-    storyFiles: uniqueFiles
-      .map((f) => getRelativePath(f, outputFileDir))
-      .map((f) => stripExtension(f))
-      .map((f) => formatPath(f)),
+    mockupFiles: {
+      absolute: uniqueFiles,
+      relative: uniqueFiles
+        .map((f) => getRelativePath(f, outputFileDir))
+        .map((f) => stripExtension(f))
+        .map((f) => formatPath(f)),
+    },
   };
 };
