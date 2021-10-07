@@ -73,6 +73,13 @@ export default function server(hostname = '127.0.0.1', port = 1337) {
       const data = JSON.parse(message);
 
       switch (data.type) {
+        // When IDE clients try to connect to the server, send back app state
+        case 'PING': {
+          if (state.app.has_synced) {
+            ws.send(JSON.stringify({ type: 'SYNC_STATE', payload: state.app }));
+          }
+          break;
+        }
         // When the app client connects, store the current state & update IDE clients
         case 'UPDATE_STATE': {
           state.app = {
