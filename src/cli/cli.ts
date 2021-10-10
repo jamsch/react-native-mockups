@@ -4,12 +4,25 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 import logger from './logger';
-import { InputConfiguration, generateConfiguration } from './configuration';
+import {
+  GenerateConfiguration,
+  generateConfiguration,
+  resolvePackageJsonConfig,
+} from './configuration';
 
 import { generateTemplate } from './template';
 import { generateLoaderDefinition } from './locator';
 import { encoding } from './constants';
 import server from './server';
+
+const resolveArgs = (keys: string[], value: string, defaultValue: string) => {
+  for (const key of keys) {
+    if (process.argv.includes(key)) {
+      return value;
+    }
+  }
+  return defaultValue;
+};
 
 yargs
   .usage('$0 [options]')
@@ -32,12 +45,27 @@ yargs
         });
     },
     (argv) => {
-      server(argv.host, argv.port);
+      resolvePackageJsonConfig().then((config) => {
+        const host = resolveArgs(
+          ['-h', '--host'],
+          argv.host,
+          config?.host || argv.host
+        );
+
+        const port = resolveArgs(
+          ['-p', '--port'],
+          String(argv.port),
+          String(config?.port || argv.port)
+        );
+
+        server(host, port ? Number(port) : undefined);
+      });
     }
   )
   .command(
-    '$0',
-    '[command]',
+    'generate',
+    'Generate the mockups file',
+    // @ts-ignore
     (y) => {
       return y.options({
         searchDir: {
@@ -67,11 +95,12 @@ yargs
         },
       });
     },
-    DefaultCommand
+    GenerateCommand
   )
+  .demandCommand(1)
   .help().argv;
 
-function DefaultCommand(args: InputConfiguration) {
+function GenerateCommand(args: GenerateConfiguration) {
   if (args.silent) {
     logger.setLogLevel('silent');
   } else if (args.debug) {
@@ -80,7 +109,7 @@ function DefaultCommand(args: InputConfiguration) {
     logger.setLogLevel('info');
   }
 
-  logger.debug('yargs', args);
+  // logger.debug('yargs', args);
 
   (async () => {
     try {

@@ -3,28 +3,32 @@ import path from 'path';
 import logger from './logger';
 import { encoding, appName } from './constants';
 
-export type InputConfiguration = {
-  searchDir?: Array<string> | string;
-  outputFile?: string;
-  pattern?: string;
-  silent?: boolean;
-  debug?: boolean;
-};
+export type PackageJsonConfig = Partial<{
+  searchDir: Array<string> | string;
+  outputFile: string;
+  pattern: string;
+  silent: boolean;
+  debug: boolean;
+  host: string;
+  port: string;
+}>;
 
-export type Configuration = {
+export type GenerateConfiguration = {
   searchDir: Array<string>;
   outputFile: string;
   pattern: string;
   rootDirectory: string;
+  silent?: boolean;
+  debug?: boolean;
 };
 
 type PackageJsonFile = {
   config?: {
-    [appName]?: InputConfiguration;
+    [appName]?: PackageJsonConfig;
   };
 };
 
-export const defaultConfiguration: Configuration = {
+export const defaultConfiguration: GenerateConfiguration = {
   pattern: '**/*.mockup.jsx',
   outputFile: './src/mockups.js',
   searchDir: ['./src/'],
@@ -32,16 +36,16 @@ export const defaultConfiguration: Configuration = {
 };
 
 export const resolveConfiguration = (
-  input: InputConfiguration | undefined,
-  prevConfig: Configuration
-): Configuration => {
+  input: PackageJsonConfig | undefined,
+  fallbackConfig: GenerateConfiguration
+): GenerateConfiguration => {
   if (!input || typeof input !== 'object') {
-    return prevConfig;
+    return fallbackConfig;
   }
 
   const { searchDir, outputFile, pattern } = input;
 
-  let config = { ...prevConfig };
+  let config = { ...fallbackConfig };
 
   if (searchDir !== undefined) {
     config = {
@@ -61,14 +65,12 @@ export const resolveConfiguration = (
   return config;
 };
 
-const resolvePackageJsonConfiguration = async (
-  processDirectory: string,
-  prevConfig: Configuration
-): Promise<Configuration> => {
+export const resolvePackageJsonConfig = async () => {
+  const processDirectory = process.cwd();
   const packageJsonFile = await getPackageJsonPath(processDirectory);
 
   if (!packageJsonFile) {
-    return prevConfig;
+    return;
   }
 
   logger.debug('package.json located at ' + packageJsonFile);
@@ -77,17 +79,7 @@ const resolvePackageJsonConfiguration = async (
     encoding,
   });
 
-  const pkg = JSON.parse(packageJsonContents) as PackageJsonFile;
-
-  if (pkg.config === undefined || pkg.config[appName] === undefined) {
-    logger.debug('package.json does not have rnstl configuration');
-    return prevConfig;
-  }
-
-  const config = resolveConfiguration(pkg.config[appName], prevConfig);
-  logger.debug('package.json configuration: ', config);
-
-  return config;
+  return (JSON.parse(packageJsonContents) as PackageJsonFile).config?.[appName];
 };
 
 const getPackageJsonPath = async (processDirectory: string) => {
@@ -117,13 +109,20 @@ async function findUp(name: string, options: { cwd?: string } = {}) {
 }
 
 export const generateConfiguration = async (
-  cliArgs: InputConfiguration,
+  cliArgs: PackageJsonConfig,
   processDirectory: string
-): Promise<Configuration> => {
-  const packageConfig = await resolvePackageJsonConfiguration(
-    processDirectory,
-    defaultConfiguration
-  );
+): Promise<GenerateConfiguration> => {
+  const packageConfig = await (async () => {
+    const pkgConfig = await resolvePackageJsonConfig();
+    logger.debug('package.json configuration: ', pkgConfig);
+    if (!pkgConfig) {
+      logger.debug(`package.json does not have [${appName}] configuration`);
+      return defaultConfiguration;
+    }
+    const config = resolveConfiguration(pkgConfig, defaultConfiguration);
+    return config;
+  })();
+
   const cliConfig = resolveConfiguration(cliArgs, packageConfig);
 
   logger.debug('cli configuration: ', cliConfig);

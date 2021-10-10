@@ -2,11 +2,17 @@ import glob from 'glob';
 import path from 'path';
 
 import { formatPath, getRelativePath, stripExtension } from './paths';
-import type { Configuration } from './configuration';
+import type { GenerateConfiguration } from './configuration';
 
 export type LoaderDefinition = {
   outputFile: string;
-  mockupFiles: { absolute: string[]; relative: string[] };
+  mockupFiles: {
+    absolute: string[];
+    relative: {
+      root: string[];
+      outputFile: string[];
+    };
+  };
 };
 
 export const generateLoaderDefinition = async ({
@@ -14,7 +20,7 @@ export const generateLoaderDefinition = async ({
   outputFile,
   searchDir,
   pattern,
-}: Configuration): Promise<LoaderDefinition> => {
+}: GenerateConfiguration): Promise<LoaderDefinition> => {
   const fullOutputFile = path.resolve(rootDirectory, outputFile);
   const outputFileDir = path.dirname(fullOutputFile);
 
@@ -30,14 +36,19 @@ export const generateLoaderDefinition = async ({
 
   const uniqueFiles = Array.from(new Set(lookupFiles));
 
+  const projectRoot = process.cwd();
+
   return {
     outputFile: fullOutputFile,
     mockupFiles: {
       absolute: uniqueFiles,
-      relative: uniqueFiles
-        .map((f) => getRelativePath(f, outputFileDir))
-        .map((f) => stripExtension(f))
-        .map((f) => formatPath(f)),
+      relative: {
+        root: uniqueFiles.map((f) => getRelativePath(f, projectRoot)),
+        outputFile: uniqueFiles
+          .map((f) => getRelativePath(f, outputFileDir))
+          .map((f) => stripExtension(f))
+          .map((f) => formatPath(f)),
+      },
     },
   };
 };

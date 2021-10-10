@@ -3,13 +3,16 @@ import prettier from 'prettier';
 import type { LoaderDefinition } from './locator';
 import logger from './logger';
 
-const formatter = (
-  files: { absolute: string[]; relative: string[] },
-  frms: (params: { absolute: string; relative: string }) => string,
+const relativeFormatter = (
+  files: { root: string[]; outputFile: string[] },
+  frms: (params: { root: string; outputFile: string }) => string,
   separator: string
 ) => {
-  const formatted = files.absolute.map((_, i) =>
-    frms({ absolute: files.absolute[i], relative: files.relative[i] })
+  const formatted = files.root.map((_, i) =>
+    frms({
+      root: files.root[i],
+      outputFile: files.outputFile[i],
+    })
   );
   return formatted.join(separator);
 };
@@ -27,9 +30,9 @@ export const generateTemplate = async (
   // https://github.com/jamsch/react-native-mockups
 
   export default {
-  ${formatter(
-    loader.mockupFiles,
-    (file) => `'${file.absolute}': require('${file.relative}')`,
+  ${relativeFormatter(
+    loader.mockupFiles.relative,
+    (file) => `'${file.root}': require('${file.outputFile}')`,
     ',\n'
   )}
   };

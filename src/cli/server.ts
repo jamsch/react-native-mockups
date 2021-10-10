@@ -11,8 +11,13 @@ type Mockups = Array<{
 }>;
 
 type AppState = {
-  has_synced: boolean;
+  /** The project's root directory. Useful for navigating to individual mockup files */
+  projectRoot: string;
+  /** Whether the server has synced with an app client */
+  hasSynced: boolean;
+  /** Current relative path to mockup. You can determine the active mockup by searching "mockups[x].path" */
   path: string | null;
+  /** List of synced mockups with the app client */
   mockups: Mockups[];
 };
 
@@ -51,8 +56,9 @@ export default function server(hostname = '127.0.0.1', port = 1337) {
   const state = {
     clients: [] as WebSocket[],
     app: {
+      projectRoot: process.cwd(),
       path: '',
-      has_synced: false,
+      hasSynced: false,
       mockups: [],
     } as AppState,
   };
@@ -75,7 +81,7 @@ export default function server(hostname = '127.0.0.1', port = 1337) {
       switch (data.type) {
         // When IDE clients try to connect to the server, send back app state
         case 'PING': {
-          if (state.app.has_synced) {
+          if (state.app.hasSynced) {
             ws.send(JSON.stringify({ type: 'SYNC_STATE', payload: state.app }));
           }
           break;
@@ -83,8 +89,9 @@ export default function server(hostname = '127.0.0.1', port = 1337) {
         // When the app client connects, store the current state & update IDE clients
         case 'UPDATE_STATE': {
           state.app = {
+            ...state.app, // retain "projectRoot"
             ...(data.payload as AppState),
-            has_synced: true,
+            hasSynced: true,
           };
           // Update clients
           for (const client of state.clients.filter((c) => c !== ws)) {

@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/@jamsch%2Freact-native-mockups.svg)](https://badge.fury.io/js/@jamsch%2Freact-native-mockups)
 
-react-native-mockups is a lean (no runtime dependencies) alternative to Storybook that provides a similar API and CLI tooling for React Native to automatically load your components.
+react-native-mockups is a lean (no runtime dependencies) alternative to Storybook that provides a similar API with CLI & IDE tooling for React & React Native to develop your components in isolation. It's primary goal is to be easily integrated in to your web & native projects (as a regular component) without requiring any custom build tools.
 
 ![preview](https://i.imgur.com/ZwRJOd8.gif)
 
@@ -24,29 +24,32 @@ export default {
 };
 ```
 
-Since react-native uses Metro for building, it doesn't support glob imports. So this package includes a CLI tool that finds all `*.mockup.js/ts/tsx` files in your project to generate the `mockups.js` file. You can configure it as a CLI argument or through `package.json`
+This package includes a CLI tool that finds all `*.mockup.js/ts/tsx` files in your project to generate a `mockups.js` file. You can configure it as a CLI argument or through `package.json`
 
 ### Configuring through `package.json`
 
-Provide a `config` key
+1. Add a `config` key with the following options:
 
 ```json
 // package.json
 {
   "scripts": {
-    "mockup": "react-native-mockups"
+    "mockup:generate": "react-native-mockups generate"
   },
   "config": {
     "react-native-mockups": {
       "searchDir": ["./src"],
       "pattern": "**/*.mockup.tsx",
-      "outputFile": "./src/mockups.ts"
+      "outputFile": "./src/mockups.ts",
+      // (optional) Server options
+      "port": "1337",
+      "host": "127.0.0.1"
     }
   }
 }
 ```
 
-Run `npm run mockup` to generate the `mockups.ts` file.
+2. Run `npm run mockup:generate` to generate the `mockups.ts` file.
 
 ### CLI arguments
 
@@ -57,18 +60,37 @@ react-native-mockups [options]
 
 Commands:
   react-native-mockups server [-p 1337]  Start the server
-  react-native-mockups                   [command]                                   [default]
+  react-native-mockups generate          Generate the mockups file
 
 Options:
-  --searchDir   The directory or directories, relative to the project
-                root, to search for files in.                             [array]
-  --pattern     Pattern to search the search directories with. Note:
-                if pattern contains '**/*' it must be escaped with quotes [string]
-  --outputFile  Path to the output file.                                  [string]
-  --debug       Sets log level to debug                                   [boolean]
-  --silent      Silences all logging                                      [boolean]
+  --version     Show version number                                       [boolean]
   --help        Show help                                                 [boolean]
+```
 
+```sh
+react-native-mockups generate
+
+Generate the mockups file
+
+Options:
+  --searchDir    The directory or directories, relative to the project root, to
+                 search for files in.                                    [array]
+  --pattern      Pattern to search the search directories with. Note: if pattern
+                 contains '**/*' it must be escaped with quotes         [string]
+  --outputFile   Path to the output file.                               [string]
+  --startServer  Starts the server                                     [boolean]
+  --debug        Sets log level to debug                               [boolean]
+  --silent       Silences all logging                                  [boolean]
+```
+
+```sh
+react-native-mockups server [-p 1337]
+
+Start the server
+
+Options:
+  -p, --port     Port to listen on                      [number] [default: 1337]
+  -h, --host     Hostname                        [string] [default: "127.0.0.1"]
 ```
 
 ## Basic Usage
@@ -111,7 +133,7 @@ export default function MockupApp() {
 
 4. Render the component anywhere in your app.
 
-> Tip: You can conditionally load your Mockup view as the app root using `babel-plugin-transform-inline-environment-variables`, for example:
+> Tip: For react-native projects you can conditionally load your Mockup view as the app root using `babel-plugin-transform-inline-environment-variables`, for example:
 
 ```js
 // babel.config.js
@@ -262,6 +284,12 @@ export default function MockupApp() {
     title: string;
     navigate: (path: string) => void;
   }) => React.ReactNode;
+  /** Customise how your mockup will be rendered. Tip: call `navigate(null)` to navigate back to the root */
+  renderMockup?: (params: {
+    title: string;
+    Component: ComponentType<any>;
+    navigate: (path: string | null) => void;
+  }) => ReactNode;
   /** Path to websocket server */
   server?: string;
 }
@@ -275,7 +303,19 @@ Preview:
 
 ![mockup-server-preview](https://i.imgur.com/D9TCc4D.gif)
 
-1. Run `react-native-mockups server` to start the server
+1. Run `react-native-mockups server` (or `npm run mockups:server` as shown below) to start the server
+
+```json
+// package.json
+{
+  "scripts": {
+    "mockups:server": "react-native-mockups server",
+    // alternatively, run server & your app using the same command
+    "dev": "npm-run-all --parallel mockups:server start"
+  }
+}
+```
+
 2. Add `server="[host]:[port]"` to `MockupRoot`
 
 ```tsx
@@ -299,55 +339,100 @@ export default function App() {
 adb reverse tcp:1337 tcp:1337
 ```
 
+## VS Code extension
+
+You can install the following VS Code extension if you'd like to navigate between mockup files in your local codebase and on your app. You'll need to be running the Mockup server (`react-native-mockups server`) to use this extension.
+
+- Repository: https://github.com/jamsch/react-native-mockups-explorer-vscode
+- Visual Studio Marketplace: https://marketplace.visualstudio.com/items?itemName=jamsch.react-native-mockups-explorer-vscode
+
 ## The websocket server API
 
 If you'd like to create your own IDE tooling, here's a quick starter.
 
 ```ts
-// Connect to websocket server
-const ws = new WebSocket('ws://localhost:1337/websocket');
-
-// Your application UI state
-let uiState = {
-  path: '', // Current Path
-  mockups: [],
+/*
+type Mockup = {
+  title: string;
+  path: string;
+  children?: Mockup[];
 };
-let connected = false;
+*/
 
-ws.onopen = () => {
-  connected = true;
-};
+let state = {
+  /** Whether the server has synced with any app client */
+  has_synced: false,
+  /** {string|null} Current mockup by full path */
+  path: null,
+  /** {Mockup[]} List of all mockups */
+  mockups: [];
+}
 
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  switch (message.type) {
-    // Once an app client has connected, you'll get a "SYNC_STATE" message
-    case 'SYNC_STATE': {
-      uiState = message.payload;
-      /* {
-          type: "SYNC_STATE",
-          payload: {
-            path: string; // Current path
-            mockups: Array<{
-              title: string,
-              path: string,
-              children?: [{ title: string, path: string, children?: [...] }]
-          }>
-        }*/
-      break;
+function createWebsocket() {
+  // Connect to websocket server
+  const websocket = new WebSocket('ws://localhost:1337/websocket');
+
+  websocket.onopen = () => {
+    // Ping the server to get the initial state
+    websocket.send(JSON.stringify({ type: 'PING' }));
+  };
+
+  websocket.onclose = () => {
+    // Notify user that they've lost connection to the mockup server
+    // call reconnect() once confirming with the user
+  };
+
+  websocket.onerror = (error) => {
+    // Notify user that they've failed to connect to the server
+    // call reconnect() once confirming with the user
+  };
+
+  websocket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    switch (message.type) {
+      // Once an app client has connected, you'll get a "SYNC_STATE" message
+      case 'SYNC_STATE': {
+        state = message.payload;
+        /* {
+            type: "SYNC_STATE",
+            payload: {
+              has_synced: boolean,
+              path: string; // Current path
+              mockups: Mockup[];
+            }>
+          }*/
+        break;
+      }
+      case 'NAVIGATE': {
+        // { type: "NAVIGATE", payload: "/path/to/components/ui/Button.tsx" }
+        state.path = message.payload;
+        break;
+      }
     }
-    case 'NAVIGATE': {
-      uiState.path = message.payload;
-      // { type: "NAVIGATE", payload: "./components/ui/Button.tsx" }
-      break;
-    }
+  };
+
+  return websocket;
+}
+
+// create a websocket in some context (preferably in a class)
+global.websocket = createWebsocket();
+
+const reconnect = () => {
+    // Reset event listeners to avoid duplicate messages
+    global.websocket.onclose = () => {};
+    global.websocket.close();
+    global.websocket = createWebsocket();
+    // Re-render your UI
+    // render()
   }
-};
+}
 
-// Navigate to a mockup. This will be broadcasted to all clients
-const message = { type: 'NAVIGATE', payload: './components/ui/Button.tsx' };
-
-ws.send(JSON.stringify(message));
+const onButtonPress = (mockup) => {
+  // Navigate to a mockup. This will be broadcasted to all clients
+  // mockup: { title: 'Button', path: './components/ui/Button.tsx' }
+  const message = { type: 'NAVIGATE', payload: mockup.path };
+  ws.send(JSON.stringify(message));
+}
 ```
 
 ## Contributing
