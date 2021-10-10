@@ -1,6 +1,6 @@
 {
   "name": "@jamsch/react-native-mockups",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Tools to develop components in isolation for React & React Native",
   "main": "lib/commonjs/web.js",
   "module": "lib/module/web.js",
