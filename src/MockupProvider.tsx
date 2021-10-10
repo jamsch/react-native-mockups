@@ -70,14 +70,15 @@ export default function MockupProvider<T extends FileMap>(
       }
       // @ts-ignore
       const Mockup = mockups[selectedMockup].default;
-      return props.renderMockup ? (
-        props.renderMockup({
-          title: Mockup.title,
-          Component: Mockup.component,
-          navigate: (path: keyof T) => {
+      return props.Wrapper ? (
+        <props.Wrapper
+          title={Mockup.title}
+          path={selectedMockup}
+          Component={Mockup.component}
+          navigate={(path) => {
             setSelectedMockup(path);
-          },
-        })
+          }}
+        />
       ) : (
         <Mockup.component />
       );

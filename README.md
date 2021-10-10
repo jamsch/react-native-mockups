@@ -284,12 +284,13 @@ export default function MockupApp() {
     title: string;
     navigate: (path: string) => void;
   }) => React.ReactNode;
-  /** Customise how your mockup will be rendered. Tip: call `navigate(null)` to navigate back to the root */
-  renderMockup?: (params: {
+  /** Wrapper component to render a mockup component. Tip: call `navigate(null)` to navigate back to the root */
+  Wrapper?: FunctionComponent<{
     title: string;
+    path: string;
     Component: ComponentType<any>;
     navigate: (path: string | null) => void;
-  }) => ReactNode;
+  }>;
   /** Path to websocket server */
   server?: string;
 }

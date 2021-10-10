@@ -1,8 +1,14 @@
-import React, { useContext, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
-import { BackHandler } from 'react-native';
+import React, { useCallback, useContext, useEffect } from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  BackHandler,
+} from 'react-native';
 import MockupProvider, { MockupContext } from './MockupProvider';
-import type { FileMap, MockupBaseProps } from './types';
+import type { FileMap, MockupBaseProps, MockupWrapperComponent } from './types';
 import { formatMockupName, useSortedMockups } from './utils';
 
 export interface Meta {
@@ -25,8 +31,24 @@ export interface MockupRootProps<T extends FileMap> extends MockupBaseProps<T> {
 }
 
 export function MockupRoot<T extends FileMap>(props: MockupRootProps<T>) {
+  const { Wrapper: PropsWrapper, ...rest } = props;
+
+  // Add back button handling inside mockups
+  const Wrapper = useCallback<MockupWrapperComponent<T>>(
+    (p) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useHandleBack(() => {
+        p.navigate(null);
+        return true;
+      });
+      return PropsWrapper ? <PropsWrapper {...p} /> : <p.Component />;
+    },
+    [PropsWrapper]
+  );
+
   return (
-    <MockupProvider {...props}>
+    <MockupProvider Wrapper={Wrapper} {...rest}>
+      {/* @ts-ignore */}
       <MockupRootView {...props} />
     </MockupProvider>
   );
@@ -35,11 +57,6 @@ export function MockupRoot<T extends FileMap>(props: MockupRootProps<T>) {
 function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
   const { mockups, renderItem } = props;
   const [, setActiveMockup] = useContext(MockupContext);
-
-  useHandleBack(() => {
-    setActiveMockup(null);
-    return true;
-  });
 
   const navigate = (path: keyof T) => {
     setActiveMockup(path as string);
