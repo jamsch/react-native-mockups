@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
 import { BackHandler } from 'react-native';
 import MockupProvider, { MockupContext } from './MockupProvider';
 import type { FileMap, MockupBaseProps } from './types';
@@ -48,7 +48,7 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
   const sortedMockups = useSortedMockups(mockups);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {sortedMockups.map(({ key, value }) => {
         // @ts-ignore
         const Mockup = value.default;
@@ -74,7 +74,7 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
