@@ -148,7 +148,7 @@ module.exports = {
 "scripts": {
   "start": "react-native start",
   "mockup": "cross-env MOCKUP=true npm start",
-  "premockup": "react-native-mockups"
+  "premockup": "react-native-mockups generate"
 }
 ```
 
@@ -238,7 +238,7 @@ export default function MockupApp() {
 }
 ```
 
-## Configuring Mockup Item layout
+## Configuring Mockup List Item layout
 
 ```jsx
 // MockupApp.jsx
@@ -251,7 +251,7 @@ export default function MockupApp() {
   return (
     <MockupRoot
       mockups={mockups}
-      // Customise the item to render
+      // Customise the list item to render
       renderItem={({ path, navigate, title }) => {
         return (
           <Pressable
