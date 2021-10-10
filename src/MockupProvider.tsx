@@ -73,7 +73,7 @@ export default function MockupProvider<T extends FileMap>(
       return props.Wrapper ? (
         <props.Wrapper
           title={Mockup.title}
-          path={selectedMockup}
+          path={selectedMockup as string}
           Component={Mockup.component}
           navigate={(path) => {
             setSelectedMockup(path);

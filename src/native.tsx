@@ -10,6 +10,7 @@ import {
 import MockupProvider, { MockupContext } from './MockupProvider';
 import type { FileMap, MockupBaseProps, MockupWrapperComponent } from './types';
 import { formatMockupName, useSortedMockups } from './utils';
+export { MockupWrapperComponent, MockupWrapperProps } from './types';
 
 export interface Meta {
   title: string;
@@ -34,7 +35,7 @@ export function MockupRoot<T extends FileMap>(props: MockupRootProps<T>) {
   const { Wrapper: PropsWrapper, ...rest } = props;
 
   // Add back button handling inside mockups
-  const Wrapper = useCallback<MockupWrapperComponent<T>>(
+  const Wrapper = useCallback<MockupWrapperComponent>(
     (p) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useHandleBack(() => {

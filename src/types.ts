@@ -12,12 +12,14 @@ export interface MockupBaseProps<T extends FileMap> {
   /** Websocket server path (e.g. "localhost:1337") */
   server?: string;
   /** Wrapper component to render a mockup component */
-  Wrapper?: MockupWrapperComponent<T>;
+  Wrapper?: MockupWrapperComponent;
 }
 
-export type MockupWrapperComponent<T extends FileMap> = FunctionComponent<{
+export type MockupWrapperProps = {
   title: string;
-  path: keyof T;
+  path: string;
   Component: ComponentType<any>;
-  navigate: (path: keyof T | null) => void;
-}>;
+  navigate: (path: string | null) => void;
+};
+
+export type MockupWrapperComponent = FunctionComponent<MockupWrapperProps>;

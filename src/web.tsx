@@ -2,6 +2,7 @@ import React, { useContext, ReactNode } from 'react';
 import MockupProvider, { MockupContext } from './MockupProvider';
 import type { FileMap, MockupBaseProps } from './types';
 import { formatMockupName, useSortedMockups } from './utils';
+export { MockupWrapperComponent, MockupWrapperProps } from './types';
 
 export interface Meta {
   title: string;
