@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { BackHandler } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+export const formatMockupName = (path: string) => {
+  // get file name from path
+  const fileName = path.split('/').pop();
+  return fileName;
+};
 
 export const useWebsocket = (
   server: string,
@@ -40,12 +45,17 @@ Error: `,
   };
 };
 
-/** Uses global navigation ref instead of relative navigation ref */
-export function useHandleBack(callback: () => boolean) {
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', callback);
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', callback);
-    };
-  }, [callback]);
-}
+export const useSortedMockups = (mockups: Record<string, NodeRequire>) => {
+  return useMemo(
+    () =>
+      Object.keys(mockups)
+        .map((mockup) => ({
+          key: mockup,
+          value: mockups[mockup],
+          // @ts-ignore
+          sortKey: mockups[mockup].title || formatMockupName(mockup),
+        }))
+        .sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
+    [mockups]
+  );
+};
