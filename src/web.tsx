@@ -1,7 +1,7 @@
 import React, { useContext, ReactNode } from 'react';
 import MockupProvider, { MockupContext } from './MockupProvider';
 import type { FileMap, MockupBaseProps } from './types';
-import { formatMockupName, useSortedMockups } from './utils';
+import { useSortedMockups } from './utils';
 export { MockupWrapperComponent, MockupWrapperProps } from './types';
 
 export interface Meta {
@@ -42,14 +42,10 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
 
   return (
     <div style={styles.container}>
-      {sortedMockups.map(({ key, value }) => {
-        // @ts-ignore
-        const Mockup = value.default;
-        const title = Mockup.title || formatMockupName(key);
-
+      {sortedMockups.map(({ path, title }) => {
         if (renderItem) {
           return renderItem({
-            path: key,
+            path,
             title,
             navigate,
           });
@@ -57,8 +53,8 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
 
         return (
           <button
-            key={key}
-            onClick={() => navigate(key)}
+            key={path}
+            onClick={() => navigate(path)}
             style={styles.mockupButton}
           >
             {title}

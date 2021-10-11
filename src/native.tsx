@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import MockupProvider, { MockupContext } from './MockupProvider';
 import type { FileMap, MockupBaseProps, MockupWrapperComponent } from './types';
-import { formatMockupName, useSortedMockups } from './utils';
+import { useSortedMockups } from './utils';
 export { MockupWrapperComponent, MockupWrapperProps } from './types';
 
 export interface Meta {
@@ -67,14 +67,10 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
 
   return (
     <ScrollView style={styles.container}>
-      {sortedMockups.map(({ key, value }) => {
-        // @ts-ignore
-        const Mockup = value.default;
-        const title = Mockup.title || formatMockupName(key);
-
+      {sortedMockups.map(({ path, title }) => {
         if (renderItem) {
           return renderItem({
-            path: key,
+            path,
             title,
             navigate,
           });
@@ -82,8 +78,8 @@ function MockupRootView<T extends FileMap>(props: MockupRootProps<T>) {
 
         return (
           <Pressable
-            key={key}
-            onPress={() => navigate(key)}
+            key={path}
+            onPress={() => navigate(path)}
             android_ripple={{ borderless: false }}
           >
             <View style={styles.mockupButton}>

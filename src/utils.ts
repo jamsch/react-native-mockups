@@ -45,17 +45,16 @@ Error: `,
   };
 };
 
+export const sortMockups = (mockups: Record<string, NodeRequire>) => {
+  return Object.keys(mockups)
+    .map((mockup) => ({
+      // @ts-ignore
+      title: mockups[mockup]?.default?.title || formatMockupName(mockup),
+      path: mockup,
+    }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+};
+
 export const useSortedMockups = (mockups: Record<string, NodeRequire>) => {
-  return useMemo(
-    () =>
-      Object.keys(mockups)
-        .map((mockup) => ({
-          key: mockup,
-          value: mockups[mockup],
-          // @ts-ignore
-          sortKey: mockups[mockup].title || formatMockupName(mockup),
-        }))
-        .sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
-    [mockups]
-  );
+  return useMemo(() => sortMockups(mockups), [mockups]);
 };

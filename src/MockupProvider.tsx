@@ -5,7 +5,7 @@ import React, {
   Dispatch,
   SetStateAction,
 } from 'react';
-import { useWebsocket } from './utils';
+import { useWebsocket, sortMockups } from './utils';
 import type { FileMap, MockupBaseProps } from './types';
 
 type SetStateFunction<T> = Dispatch<SetStateAction<T>>;
@@ -39,13 +39,7 @@ export default function MockupProvider<T extends FileMap>(
       return;
     }
 
-    const sortedMockups = Object.keys(mockups)
-      .map((mockup) => ({
-        // @ts-ignore
-        title: mockups[mockup]?.default?.title || formatMockupName(mockup),
-        path: mockup,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title));
+    const sortedMockups = sortMockups(mockups);
 
     const action = JSON.stringify({
       type: 'UPDATE_STATE',
@@ -95,9 +89,3 @@ export default function MockupProvider<T extends FileMap>(
     </MockupContext.Provider>
   );
 }
-
-const formatMockupName = (path: string) => {
-  // get file name from path
-  const fileName = path.split('/').pop();
-  return fileName;
-};
