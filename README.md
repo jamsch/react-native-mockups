@@ -361,11 +361,13 @@ type Mockup = {
 */
 
 let state = {
+  /** The project's root directory. Useful for navigating to individual mockup files */
+  projectRoot: "",
   /** Whether the server has synced with any app client */
-  has_synced: false,
-  /** {string|null} Current mockup by full path */
+  hasSynced: false,
+  /** {string|null} Current relative path to mockup. You can determine the active mockup by searching "mockups[x].path" */
   path: null,
-  /** {Mockup[]} List of all mockups */
+  /** {Mockup[]} List of synced mockups with the app client */
   mockups: [];
 }
 
@@ -397,15 +399,16 @@ function createWebsocket() {
         /* {
             type: "SYNC_STATE",
             payload: {
-              has_synced: boolean,
-              path: string; // Current path
+              projectRoot: string;
+              hasSynced: boolean,
+              path: string;
               mockups: Mockup[];
             }>
           }*/
         break;
       }
       case 'NAVIGATE': {
-        // { type: "NAVIGATE", payload: "/path/to/components/ui/Button.tsx" }
+        // { type: "NAVIGATE", payload: "./src/components/ui/Button.tsx" }
         state.path = message.payload;
         break;
       }
